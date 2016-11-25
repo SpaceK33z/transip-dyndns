@@ -1,5 +1,7 @@
 #Transip Dyndns script
 
+This script does the same as [jlentik's version](https://github.com/jlentink/transip-dyndns), but has support for IPv6.
+
 ##usage
 
 ```
