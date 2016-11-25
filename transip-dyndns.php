@@ -28,7 +28,8 @@ $privateKey = null;
 $domain = null;
 $domainTld  = null;
 $domainEntry = null;
-$publicIp = file_get_contents('https://api.ipify.org');
+$publicIpv4 = file_get_contents('http://v4.ipv6-test.com/api/myip.php');
+$publicIpv6 = file_get_contents('http://v6.ipv6-test.com/api/myip.php');
 $options = getopt("u:p:d:", ["username:", "private-key:", "domain:"]);
 
 if(!isset($options['u']) && !isset($options['username'])){
@@ -86,26 +87,33 @@ Transip_ApiSettings::$privateKey = file_get_contents($privateKey);
 
 
 try {
-    $entrySet = false;
+    $entrySetv4 = false;
     $transipDomain = Transip_DomainService::getInfo($domainTld);
     /** @var Transip_DnsEntry $entry */
     foreach($transipDomain->dnsEntries as $entry){
         if($entry->type == $entry::TYPE_A && $entry->name === $domainEntry){
-            $entrySet = true;
-            $entry->content = $publicIp;
+            $entrySetv4 = true;
+            $entry->content = $publicIpv4;
+            $entry->expire = 60;
+        }
+        if($entry->type == $entry::TYPE_AAAA && $entry->name === $domainEntry){
+            $entrySetv6 = true;
+            $entry->content = $publicIpv6;
             $entry->expire = 60;
         }
     }
 
-    if(!$entrySet)
-        $transipDomain->dnsEntries[] = new Transip_DnsEntry($domainEntry, 60, Transip_DnsEntry::TYPE_A, $publicIp);
+    if(!$entrySetv4)
+        $transipDomain->dnsEntries[] = new Transip_DnsEntry($domainEntry, 60, Transip_DnsEntry::TYPE_A, $publicIpv4);
+    if(!$entrySetv6)
+        $transipDomain->dnsEntries[] = new Transip_DnsEntry($domainEntry, 60, Transip_DnsEntry::TYPE_AAAA, $publicIpv6);
 
     Transip_DomainService::setDnsEntries($domainTld, $transipDomain->dnsEntries);
-    print $domain . " is set to " . $publicIp . "\n";
+    print $domain . " is set to " . $publicIpv4 . " (IPv4) \n";
+    print $domain . " is set to " . $publicIpv6 . " (IPv6) \n";
     exit(0);
 }
 
 catch(SoapFault $e) {
     writeError('An error occurred: ' . $e->getMessage() . "\n");
 }
-
