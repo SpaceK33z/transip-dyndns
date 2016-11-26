@@ -88,6 +88,7 @@ Transip_ApiSettings::$privateKey = file_get_contents($privateKey);
 
 try {
     $entrySetv4 = false;
+    $entrySetv6 = false;
     $transipDomain = Transip_DomainService::getInfo($domainTld);
     /** @var Transip_DnsEntry $entry */
     foreach($transipDomain->dnsEntries as $entry){
